@@ -1,0 +1,1218 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ChezaSmart KE — Free Kenyan Trivia & Arcade</title>
+  <!-- Tailwind CSS for lightweight, responsive styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #090d16;
+      color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: contain;
+    }
+    /* Custom subtle animations */
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.35); }
+      50% { box-shadow: 0 0 18px 2px rgba(16, 185, 129, 0.25); }
+    }
+    .glow-emerald {
+      animation: pulseGlow 2.8s infinite;
+    }
+    /* Responsive Arcade Canvas Container */
+    #arcade-canvas-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      height: 440px;
+      margin: 0 auto;
+      border-radius: 1rem;
+      overflow: hidden;
+      background: #111827;
+      border: 2px solid #1e293b;
+      touch-action: none;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-slate-950">
+
+  <!-- ===================================================================== -->
+  <!-- TOP HEADER & HONEST BRANDING                                          -->
+  <!-- ===================================================================== -->
+  <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-30 backdrop-blur-md">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <!-- Kenyan-inspired shield/emblem SVG -->
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 via-slate-900 to-red-600 p-0.5 flex items-center justify-center shadow-md">
+          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-extrabold text-amber-400 text-lg">
+            KE
+          </div>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white leading-tight">
+            ChezaSmart <span class="text-emerald-400">KE</span>
+          </h1>
+          <p class="text-[11px] sm:text-xs text-slate-400 font-medium">
+            100% Free to Play • Zero Deposits • Pure Fun
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Score button with points-to-USD converter attached -->
+        <div class="relative">
+          <button id="header-best-score-btn" onclick="togglePointsConverter()" class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-right" title="Open points conversion">
+            <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Best Score · Points</span>
+            <span id="header-best-score" class="text-xs sm:text-sm font-extrabold text-amber-400">0 pts</span>
+          </button>
+          <div id="points-converter-popover" class="hidden absolute right-0 top-full mt-2 z-50 w-64 bg-slate-900 border border-slate-700 rounded-xl p-3 shadow-xl space-y-2">
+            <p class="text-xs text-slate-300 font-bold">Points conversion · 10,000 pts = $1</p>
+            <div class="flex gap-2"><input id="points-convert-input" type="number" min="0" step="1" placeholder="Enter points" class="min-w-0 flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2 py-2 text-white text-sm" /><button onclick="convertPointsToUsd()" class="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm">Convert</button></div>
+            <p id="points-convert-result" class="text-xs font-bold text-amber-400" aria-live="polite">Value: $0.00 USD</p>
+          </div>
+        </div>
+        <!-- Settings button moved to the former sound-button position -->
+        <button id="settings-btn" onclick="openSettings()" title="Game Settings" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold text-xs sm:text-sm">⚙️ Settings</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN CONTENT CONTAINER                                                -->
+  <!-- ===================================================================== -->
+  <main class="flex-1 max-w-3xl w-full mx-auto px-4 py-4 space-y-5">
+
+    <!-- =================================================================== -->
+    <!-- AD SLOT #1: TOP RESPONSIVE BANNER (728x90 Desktop / 320x50 Mobile)  -->
+    <!-- ADMIN: Paste your Google AdSense or Adsterra Banner code below      -->
+    <!-- =================================================================== -->
+    <section aria-label="Top Advertisement" class="w-full">
+      <div class="bg-slate-900/70 border border-dashed border-slate-700 rounded-xl p-2 text-center min-h-[64px] flex flex-col items-center justify-center">
+        <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">
+          Advertisement Slot (Admin Monetization Zone — Top Banner 728x90 / 320x50)
+        </span>
+        <!-- [PASTE TOP AD NETWORK SCRIPT HERE — e.g., AdSense <ins class="adsbygoogle"> or Adsterra banner] -->
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MODE SWITCHER TABS                                                  -->
+    <!-- =================================================================== -->
+    <nav class="grid grid-cols-2 gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800">
+      <button
+        id="tab-trivia"
+        onclick="switchMode('trivia')"
+        class="py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-emerald-500 text-slate-950 shadow-md"
+      >
+        <span>🧠</span> Kenyan Trivia
+      </button>
+      <button
+        id="tab-arcade"
+        onclick="switchMode('arcade')"
+        class="py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition text-slate-300 hover:bg-slate-800"
+      >
+        <span>🚐</span> Matatu Dodge
+      </button>
+    </nav>
+
+    <!-- =================================================================== -->
+    <!-- MODE 1: KENYAN TRIVIA CHALLENGE                                     -->
+    <!-- =================================================================== -->
+    <section id="section-trivia" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+      <!-- Trivia Top Stats Bar -->
+      <div class="flex items-center justify-between gap-2 text-xs sm:text-sm">
+        <div class="flex items-center gap-2">
+          <span class="px-3 py-1 rounded-full bg-slate-800 text-emerald-400 font-bold border border-slate-700">
+            Q <span id="q-current">1</span>/<span id="q-total">16</span>
+          </span>
+          <span id="streak-badge" class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30">
+            🔥 Streak: 0
+          </span>
+        </div>
+        <div class="font-extrabold text-white bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+          Score: <span id="trivia-score" class="text-emerald-400">0</span>
+        </div>
+      </div>
+
+      <!-- 15-Second Countdown Timer Bar -->
+      <div class="space-y-1">
+        <div class="flex justify-between text-xs font-semibold text-slate-400">
+          <span>Time Remaining</span>
+          <span id="timer-text" class="text-amber-400 font-bold">15s</span>
+        </div>
+        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+          <div id="timer-bar" class="h-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-200" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- Active Question View -->
+      <div id="trivia-play-area" class="space-y-4">
+        <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 sm:p-5">
+          <span id="q-category" class="inline-block text-[11px] uppercase tracking-wider font-bold text-emerald-400 mb-1.5">
+            Category
+          </span>
+          <h2 id="q-text" class="text-base sm:text-xl font-bold text-white leading-snug">
+            Loading question...
+          </h2>
+        </div>
+
+        <!-- Multiple Choice Options -->
+        <div id="q-options" class="grid grid-cols-1 gap-3">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Instant Explanation Box -->
+        <div id="q-feedback" class="hidden rounded-2xl p-4 border text-sm space-y-2">
+          <p id="q-feedback-title" class="font-extrabold text-base"></p>
+          <p id="q-feedback-fact" class="text-slate-300 leading-relaxed"></p>
+          <button
+            id="next-q-btn"
+            onclick="nextQuestion()"
+            class="w-full mt-2 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition shadow-md"
+          >
+            Next Question →
+          </button>
+        </div>
+      </div>
+
+      <!-- Trivia End-of-Round Summary Screen -->
+      <div id="trivia-summary" class="hidden text-center py-4 space-y-5">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-3xl">
+          🏆
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-2xl font-extrabold text-white">Round Complete!</h3>
+          <p id="summary-rank-text" class="text-sm text-emerald-400 font-semibold">Kenyan Trivia Champ</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 max-w-md mx-auto">
+          <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl">
+            <span class="block text-[11px] text-slate-400">Final Score</span>
+            <span id="final-trivia-score" class="text-lg font-extrabold text-amber-400">0</span>
+          </div>
+          <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl">
+            <span class="block text-[11px] text-slate-400">Correct</span>
+            <span id="final-trivia-correct" class="text-lg font-extrabold text-emerald-400">0/16</span>
+          </div>
+          <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl">
+            <span class="block text-[11px] text-slate-400">Best Streak</span>
+            <span id="final-trivia-streak" class="text-lg font-extrabold text-white">0</span>
+          </div>
+        </div>
+
+        <!-- Viral WhatsApp Share Button -->
+        <div class="space-y-2.5 max-w-md mx-auto pt-2">
+          <button
+            onclick="shareOnWhatsApp('trivia')"
+            class="w-full py-3.5 px-5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg transition"
+          >
+            <span>📲</span> Challenge Friends on WhatsApp
+          </button>
+          <button
+            onclick="restartTrivia()"
+            class="w-full py-3 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 transition"
+          >
+            🔄 Play Another Round
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MODE 2: MATATU DODGE (CANVAS ARCADE MINI-GAME)                      -->
+    <!-- =================================================================== -->
+    <section id="section-arcade" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-extrabold text-white">Matatu Highway Dodge</h2>
+          <p class="text-xs text-slate-400">Dodge potholes & roadblocks • Grab golden coins</p>
+        </div>
+        <div class="text-right">
+          <span class="block text-[10px] uppercase text-slate-400 font-semibold">High Score</span>
+          <span id="arcade-high-score" class="text-sm font-extrabold text-amber-400">0</span>
+        </div>
+      </div>
+
+      <!-- Canvas Wrapper -->
+      <div id="arcade-canvas-wrapper">
+        <canvas id="matatu-canvas"></canvas>
+
+        <!-- Start Overlay -->
+        <div id="arcade-start-overlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center space-y-4">
+          <div class="text-4xl">🚐💨</div>
+          <h3 class="text-xl font-extrabold text-white">Ready for Thika Superhighway?</h3>
+          <p class="text-xs text-slate-300 max-w-xs leading-relaxed">
+            Tap <strong>Left / Right</strong> buttons below, swipe on the road, or use keyboard arrow keys to switch lanes.
+          </p>
+          <button
+            onclick="startArcadeGame()"
+            class="px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm shadow-lg glow-emerald transition"
+          >
+            Start Driving
+          </button>
+        </div>
+
+        <!-- Game Over Overlay with Dedicated Ad Slot -->
+        <div id="arcade-gameover-overlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center space-y-3">
+          <span class="text-3xl">💥</span>
+          <h3 class="text-xl font-extrabold text-red-400">Ajali! Game Over</h3>
+          <p class="text-sm text-slate-300">
+            Run Score: <strong id="arcade-final-score" class="text-amber-400 text-lg">0</strong>
+          </p>
+
+          <!-- AD SLOT #2: GAME OVER INTERSTITIAL / RECTANGLE AD ZONE -->
+          <div class="w-full max-w-[300px] bg-slate-900 border border-dashed border-slate-700 rounded-xl p-2.5 my-1">
+            <span class="block text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
+              Advertisement Slot (Game Over Ad Zone 300x100)
+            </span>
+            <!-- [PASTE GAME-OVER / INTERSTITIAL AD SCRIPT HERE] -->
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2 w-full max-w-xs pt-1">
+            <button
+              onclick="startArcadeGame()"
+              class="flex-1 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs sm:text-sm transition"
+            >
+              🔄 Drive Again
+            </button>
+            <button
+              onclick="shareOnWhatsApp('arcade')"
+              class="flex-1 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 font-extrabold text-xs sm:text-sm transition"
+            >
+              📲 Share Score
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Large Touch Controls for Mobile Players -->
+      <div class="grid grid-cols-2 gap-3 max-w-[420px] mx-auto pt-1">
+        <button
+          id="btn-lane-left"
+          class="py-4 rounded-2xl bg-slate-800 active:bg-emerald-500 active:text-slate-950 border border-slate-700 font-extrabold text-base text-white select-none transition"
+        >
+          ◀ Left Lane
+        </button>
+        <button
+          id="btn-lane-right"
+          class="py-4 rounded-2xl bg-slate-800 active:bg-emerald-500 active:text-slate-950 border border-slate-700 font-extrabold text-base text-white select-none transition"
+        >
+          Right Lane ▶
+        </button>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- COMMUNITY LEADERBOARD (LOCAL STORAGE + SIMULATED TOP PLAYERS)       -->
+    <!-- =================================================================== -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+          <span>🏅</span> Top Players Today (Bragging Rights)
+        </h3>
+        <span class="text-[11px] text-slate-400">Updated live</span>
+      </div>
+      <div id="leaderboard-list" class="divide-y divide-slate-800/80 text-xs sm:text-sm">
+        <!-- Populated via JS -->
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- AD SLOT #3: BOTTOM RESPONSIVE BANNER                                -->
+    <!-- ADMIN: Paste your Google AdSense or Adsterra Banner code below      -->
+    <!-- =================================================================== -->
+    <section aria-label="Bottom Advertisement" class="w-full">
+      <div class="bg-slate-900/70 border border-dashed border-slate-700 rounded-xl p-2 text-center min-h-[64px] flex flex-col items-center justify-center">
+        <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">
+          Advertisement Slot (Admin Monetization Zone — Bottom Banner 728x90 / 320x50)
+        </span>
+        <!-- [PASTE BOTTOM AD NETWORK SCRIPT HERE] -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Withdrawal UI (frontend only; backend/payment integration required) -->
+  <div id="withdraw-modal" class="hidden fixed inset-0 z-[60] bg-black/75 p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Withdraw points">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between"><h2 class="text-lg font-extrabold">💵 Withdraw</h2><button onclick="closeWithdrawModal()" class="text-slate-300 text-xl" aria-label="Close">✕</button></div>
+      <p class="text-sm text-slate-300">Choose an amount from <strong>$10 to $50</strong>. At 10,000 points per $1, you need 100,000–500,000 points.</p>
+      <label class="block text-xs font-semibold text-slate-400" for="withdraw-amount">Amount (USD)</label>
+      <input id="withdraw-amount" type="number" min="10" max="50" step="1" placeholder="10–50" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+      <label class="block text-xs font-semibold text-slate-400" for="paypal-email">PayPal email</label>
+      <input id="paypal-email" type="email" required placeholder="Enter your PayPal email" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+      <p id="withdraw-message" class="text-xs text-amber-400" aria-live="polite"></p>
+      <button onclick="submitWithdrawRequest()" class="w-full p-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold">Continue</button>
+      <p class="text-[11px] text-slate-500">This is a front-end demo. It does not send or process real withdrawals until a secure backend and payment provider are connected.</p>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/70 p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Game settings">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between"><h2 class="text-lg font-extrabold">⚙️ Game Settings</h2><button onclick="closeSettings()" class="text-slate-300 text-xl" aria-label="Close settings">✕</button></div>
+      <button onclick="toggleSound(); updateSettingsSoundLabel()" class="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold">Sound: <span id="settings-sound-label">On</span> (toggle)</button>
+      <button onclick="openWithdrawModal(); closeSettings()" class="w-full p-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold">💵 Withdraw ($10–$50) · PayPal</button>
+      <button onclick="restartTrivia(); switchMode('trivia'); closeSettings()" class="w-full p-3 rounded-xl bg-emerald-500 text-slate-950 font-bold">Restart Trivia Round</button>
+      <button onclick="switchMode('arcade'); startArcadeGame(); closeSettings()" class="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold">Restart Matatu Dodge</button>
+      <p class="text-xs text-slate-400">Sound is controlled here in Settings.</p>
+      <button onclick="resetLocalGameScores()" class="w-full p-3 rounded-xl bg-red-950/60 border border-red-800 text-red-200 font-bold">Reset saved local scores</button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- TRANSPARENT FOOTER                                                    -->
+  <!-- ===================================================================== -->
+  <footer class="border-t border-slate-800/80 bg-slate-950 py-4 px-4 text-center text-xs text-slate-500 space-y-1">
+    <p class="font-semibold text-slate-400">ChezaSmart KE — Free Entertainment & Trivia Portal</p>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION JAVASCRIPT (TRIVIA + CANVAS ARCADE + LEADERBOARD)         -->
+  <!-- ===================================================================== -->
+  <script>
+    /* -----------------------------------------------------------------------
+       1. KENYAN TRIVIA QUESTION BANK (16 CURATED QUESTIONS)
+    ----------------------------------------------------------------------- */
+    const TRIVIA_BANK = [
+      {
+        category: "Athletics & Sports",
+        question: "Who became the first human in history to run a marathon in under 2 hours (1:59:40) in Vienna in 2019?",
+        options: ["David Rudisha", "Eliud Kipchoge", "Kelvin Kiptum", "Conseslus Kipruto"],
+        answer: 1,
+        fact: "Eliud Kipchoge achieved the historic 1:59:40 mark during the INEOS 1:59 Challenge in October 2019."
+      },
+      {
+        category: "Geography",
+        question: "Which Kenyan lake is famous worldwide for its huge flocks of pink flamingos and is a UNESCO World Heritage Site?",
+        options: ["Lake Naivasha", "Lake Nakuru", "Lake Turkana", "Lake Baringo"],
+        answer: 1,
+        fact: "Lake Nakuru National Park is renowned for algae-feeding flamingos as well as black and white rhinos."
+      },
+      {
+        category: "Sheng & Culture",
+        question: "In Nairobi Sheng, what does the word 'Nganya' refer to?",
+        options: ["A traffic police officer", "A heavily pimped-out matatu with loud music & art", "A plate of nyama choma", "A boda boda stage"],
+        answer: 1,
+        fact: "'Nganya' refers to custom-designed, souped-up matatus famous for vibrant graffiti, LED screens, and booming sound systems."
+      },
+      {
+        category: "History",
+        question: "In which year did Kenya officially gain independence from British colonial rule?",
+        options: ["1960", "1963", "1964", "1952"],
+        answer: 1,
+        fact: "Kenya gained independence on December 12, 1963 (Jamhuri Day), and became a republic exactly one year later in 1964."
+      },
+      {
+        category: "Kenyan Geography",
+        question: "What is the highest mountain in Kenya and the second-highest in Africa?",
+        options: ["Mount Elgon", "Mount Longonot", "Mount Kenya", "Aberdare Ranges"],
+        answer: 2,
+        fact: "Mount Kenya rises to 5,199 meters (Batian peak) and gave the country its name."
+      },
+      {
+        category: "Agriculture & Economy",
+        question: "Which Kenyan county is globally famous for its vast, lush green tea plantations?",
+        options: ["Kericho", "Garissa", "Machakos", "Kajiado"],
+        answer: 0,
+        fact: "Kericho's high altitude and regular afternoon rainfall make it the heartland of Kenya's world-famous tea industry."
+      },
+      {
+        category: "Pop Culture & Music",
+        question: "Which Kenyan Afro-pop band released the hit song 'Sura Yako'?",
+        options: ["Elani", "Sauti Sol", "Hart the Band", "Kansoul"],
+        answer: 1,
+        fact: "Sauti Sol's 2014 hit 'Sura Yako' sparked the viral Lipala dance challenge across East Africa and beyond."
+      },
+      {
+        category: "Motorsport",
+        question: "In which Kenyan town is the iconic WRC Safari Rally traditionally based in recent years?",
+        options: ["Eldoret", "Naivasha", "Malindi", "Kisumu"],
+        answer: 1,
+        fact: "Naivasha hosts the service park and rugged gravel stages around Hell's Gate and Kedong for the WRC Safari Rally."
+      },
+      {
+        category: "General Knowledge",
+        question: "What do the white shield and two crossed spears on the Kenyan flag symbolize?",
+        options: ["Agricultural wealth", "Defense of freedom", "Peace and unity", "Coastal trade"],
+        answer: 1,
+        fact: "The Maasai shield and spears symbolize the defense of freedom, while black, red, and green represent the people, blood shed for freedom, and natural wealth."
+      },
+      {
+        category: "Tech & Innovation",
+        question: "In what year was M-Pesa officially launched in Kenya by Safaricom?",
+        options: ["2004", "2007", "2010", "2012"],
+        answer: 1,
+        fact: "Launched in March 2007, M-Pesa revolutionized mobile money transfers globally."
+      },
+      {
+        category: "Wildlife & Parks",
+        question: "Which Kenyan national park is the only wildlife park in the world located right next to a capital city?",
+        options: ["Amboseli National Park", "Nairobi National Park", "Tsavo East", "Meru National Park"],
+        answer: 1,
+        fact: "Nairobi National Park sits just 7 km from Nairobi's city center, allowing visitors to spot lions and rhinos against a city skyline."
+      },
+      {
+        category: "Coastal Heritage",
+        question: "Which historic 16th-century fort overlooks the entrance to the Old Port of Mombasa?",
+        options: ["Fort Jesus", "Gedi Ruins", "Vasco da Gama Pillar", "Shimoni Caves"],
+        answer: 0,
+        fact: "Built by the Portuguese between 1593 and 1596, Fort Jesus is one of the finest preserved 16th-century military fortifications."
+      },
+      {
+        category: "Athletics & Sports",
+        question: "Which Kenyan middle-distance legend still holds the men's 800m world record of 1:40.91?",
+        options: ["Asbel Kiprop", "David Rudisha", "Emmanuel Korir", "Timothy Cheruiyot"],
+        answer: 1,
+        fact: "David Rudisha set the 1:40.91 world record in a legendary wire-to-wire run at the 2012 London Olympics."
+      },
+      {
+        category: "Kenyan Cuisine",
+        question: "Which traditional Kenyan dish consists of mashed potatoes, green peas, corn, and pumpkin/greens?",
+        options: ["Githeri", "Mukimo", "Matoke", "Pilau"],
+        answer: 1,
+        fact: "Mukimo (or irio) is a beloved Central Kenyan staple often served alongside nyama choma or beef stew."
+      },
+      {
+        category: "Geography",
+        question: "Which desert lake in northern Kenya is the world's largest permanent desert lake?",
+        options: ["Lake Magadi", "Lake Turkana", "Lake Elementaita", "Lake Victoria"],
+        answer: 1,
+        fact: "Known as the Jade Sea because of its striking turquoise color, Lake Turkana is the world's largest permanent desert lake."
+      },
+      {
+        category: "Football",
+        question: "What is the official nickname of Kenya's national men's football team?",
+        options: ["Taifa Stars", "Harambee Stars", "Uganda Cranes", "Chipolopolo"],
+        answer: 1,
+        fact: "Harambee Stars represents Kenya in international football, named after Kenya's national motto 'Harambee' (pulling together)."
+      }
+    ];
+
+    /* -----------------------------------------------------------------------
+       2. STATE MANAGEMENT & LOCAL STORAGE HIGH SCORES
+    ----------------------------------------------------------------------- */
+    let triviaQuestions = [];
+    let currentQIndex = 0;
+    let triviaScore = 0;
+    let triviaStreak = 0;
+    let bestTriviaStreak = 0;
+    let triviaCorrectCount = 0;
+    let timerInterval = null;
+    let timeLeft = 15;
+    let questionLocked = false;
+
+    const STORAGE_KEY_BEST = "chezasmart_best_overall";
+    const STORAGE_KEY_ARCADE = "chezasmart_arcade_best";
+    const STORAGE_KEY_SOUND = "chezasmart_sound_enabled";
+
+    /* -----------------------------------------------------------------------
+       2B. LIGHTWEIGHT WEB AUDIO SOUND EFFECTS (MOVEMENT, COINS, CRASH, TRIVIA)
+    ----------------------------------------------------------------------- */
+    let soundEnabled = localStorage.getItem(STORAGE_KEY_SOUND) !== "false";
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!soundEnabled) return null;
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return null;
+      if (!audioCtx) {
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    function playTone(freqStart, freqEnd, duration, type = "sine", volume = 0.12) {
+      const ctxAudio = getAudioContext();
+      if (!ctxAudio) return;
+      const now = ctxAudio.currentTime;
+      const osc = ctxAudio.createOscillator();
+      const gain = ctxAudio.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freqStart, now);
+      if (freqEnd !== freqStart) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(40, freqEnd), now + duration);
+      }
+      gain.gain.setValueAtTime(volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      osc.connect(gain);
+      gain.connect(ctxAudio.destination);
+      osc.start(now);
+      osc.stop(now + duration);
+    }
+
+    function playMoveSound(dir) {
+      if (dir < 0) {
+        playTone(260, 390, 0.08, "triangle", 0.12);
+      } else {
+        playTone(320, 460, 0.08, "triangle", 0.12);
+      }
+    }
+
+    function playCoinSound() {
+      playTone(680, 980, 0.11, "sine", 0.14);
+      setTimeout(() => playTone(980, 1240, 0.12, "sine", 0.12), 65);
+    }
+
+    function playCrashSound() {
+      playTone(190, 55, 0.28, "sawtooth", 0.18);
+    }
+
+    function playCorrectSound() {
+      playTone(523.25, 659.25, 0.12, "triangle", 0.12);
+      setTimeout(() => playTone(659.25, 783.99, 0.16, "triangle", 0.12), 90);
+    }
+
+    function playWrongSound() {
+      playTone(280, 170, 0.2, "sawtooth", 0.11);
+    }
+
+    function updateSoundUI() {
+      const icon = document.getElementById("sound-icon");
+      const label = document.getElementById("sound-label");
+      if (icon) icon.textContent = soundEnabled ? "🔊" : "🔇";
+      if (label) label.textContent = soundEnabled ? "Sound On" : "Muted";
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem(STORAGE_KEY_SOUND, String(soundEnabled));
+      updateSoundUI();
+      if (soundEnabled) {
+        playMoveSound(1);
+      }
+    }
+
+    function getBestOverall() {
+      return parseInt(localStorage.getItem(STORAGE_KEY_BEST) || "0", 10);
+    }
+
+    function updateBestScore(newScore) {
+      const currentBest = getBestOverall();
+      if (newScore > currentBest) {
+        localStorage.setItem(STORAGE_KEY_BEST, String(newScore));
+      }
+      document.getElementById("header-best-score").textContent = `${getBestOverall().toLocaleString()} pts`;
+      renderLeaderboard();
+    }
+
+    /* -----------------------------------------------------------------------
+       3. TAB NAVIGATION (TRIVIA VS ARCADE)
+    ----------------------------------------------------------------------- */
+    function switchMode(mode) {
+      const triviaSec = document.getElementById("section-trivia");
+      const arcadeSec = document.getElementById("section-arcade");
+      const tabTrivia = document.getElementById("tab-trivia");
+      const tabArcade = document.getElementById("tab-arcade");
+
+      if (mode === "trivia") {
+        triviaSec.classList.remove("hidden");
+        arcadeSec.classList.add("hidden");
+        tabTrivia.className = "py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-emerald-500 text-slate-950 shadow-md";
+        tabArcade.className = "py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition text-slate-300 hover:bg-slate-800";
+        stopArcadeLoop();
+      } else {
+        triviaSec.classList.add("hidden");
+        arcadeSec.classList.remove("hidden");
+        tabArcade.className = "py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-emerald-500 text-slate-950 shadow-md";
+        tabTrivia.className = "py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition text-slate-300 hover:bg-slate-800";
+        resizeArcadeCanvas();
+        drawIdleRoad();
+      }
+    }
+
+    /* -----------------------------------------------------------------------
+       4. TRIVIA GAME ENGINE
+    ----------------------------------------------------------------------- */
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function restartTrivia() {
+      triviaQuestions = shuffleArray(TRIVIA_BANK);
+      currentQIndex = 0;
+      triviaScore = 0;
+      triviaStreak = 0;
+      bestTriviaStreak = 0;
+      triviaCorrectCount = 0;
+
+      document.getElementById("q-total").textContent = triviaQuestions.length;
+      document.getElementById("trivia-score").textContent = "0";
+      document.getElementById("streak-badge").textContent = "🔥 Streak: 0";
+      document.getElementById("trivia-play-area").classList.remove("hidden");
+      document.getElementById("trivia-summary").classList.add("hidden");
+
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      clearInterval(timerInterval);
+      questionLocked = false;
+      timeLeft = 15;
+
+      const q = triviaQuestions[currentQIndex];
+      document.getElementById("q-current").textContent = currentQIndex + 1;
+      document.getElementById("q-category").textContent = q.category;
+      document.getElementById("q-text").textContent = q.question;
+      document.getElementById("q-feedback").classList.add("hidden");
+
+      const optionsContainer = document.getElementById("q-options");
+      optionsContainer.innerHTML = "";
+
+      const letters = ["A", "B", "C", "D"];
+      q.options.forEach((optText, idx) => {
+        const btn = document.createElement("button");
+        btn.className =
+          "w-full text-left p-3.5 sm:p-4 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700 text-white font-semibold text-sm sm:text-base flex items-center gap-3 transition active:scale-[0.99]";
+        btn.innerHTML = `
+          <span class="w-7 h-7 rounded-lg bg-slate-950 border border-slate-700 flex items-center justify-center text-xs font-extrabold text-emerald-400 shrink-0">
+            ${letters[idx]}
+          </span>
+          <span>${optText}</span>
+        `;
+        btn.onclick = () => selectAnswer(idx);
+        optionsContainer.appendChild(btn);
+      });
+
+      updateTimerUI();
+      timerInterval = setInterval(() => {
+        timeLeft -= 0.2;
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          clearInterval(timerInterval);
+          handleTimeout();
+        }
+        updateTimerUI();
+      }, 200);
+    }
+
+    function updateTimerUI() {
+      const pct = Math.max(0, (timeLeft / 15) * 100);
+      const bar = document.getElementById("timer-bar");
+      const text = document.getElementById("timer-text");
+      bar.style.width = `${pct}%`;
+      text.textContent = `${Math.ceil(timeLeft)}s`;
+
+      if (timeLeft <= 5) {
+        bar.className = "h-full bg-red-500 transition-all duration-200";
+        text.className = "text-red-400 font-bold";
+      } else {
+        bar.className = "h-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-200";
+        text.className = "text-amber-400 font-bold";
+      }
+    }
+
+    function selectAnswer(selectedIndex) {
+      if (questionLocked) return;
+      questionLocked = true;
+      clearInterval(timerInterval);
+
+      const q = triviaQuestions[currentQIndex];
+      const optionButtons = document.getElementById("q-options").children;
+      const isCorrect = selectedIndex === q.answer;
+
+      // Highlight buttons
+      for (let i = 0; i < optionButtons.length; i++) {
+        optionButtons[i].disabled = true;
+        if (i === q.answer) {
+          optionButtons[i].className =
+            "w-full text-left p-3.5 sm:p-4 rounded-xl bg-emerald-500/20 border-2 border-emerald-500 text-white font-bold text-sm sm:text-base flex items-center gap-3";
+        } else if (i === selectedIndex && !isCorrect) {
+          optionButtons[i].className =
+            "w-full text-left p-3.5 sm:p-4 rounded-xl bg-red-500/20 border-2 border-red-500 text-red-200 font-semibold text-sm sm:text-base flex items-center gap-3";
+        } else {
+          optionButtons[i].classList.add("opacity-50");
+        }
+      }
+
+      const feedbackBox = document.getElementById("q-feedback");
+      const feedbackTitle = document.getElementById("q-feedback-title");
+      const feedbackFact = document.getElementById("q-feedback-fact");
+
+      if (isCorrect) {
+        triviaStreak++;
+        if (triviaStreak > bestTriviaStreak) bestTriviaStreak = triviaStreak;
+        triviaCorrectCount++;
+        const speedBonus = Math.round(timeLeft * 10);
+        const streakBonus = (triviaStreak - 1) * 25;
+        const earned = 100 + speedBonus + streakBonus;
+        triviaScore += earned;
+        playCorrectSound();
+
+        feedbackBox.className = "rounded-2xl p-4 border border-emerald-500/40 bg-emerald-950/30 text-sm space-y-2";
+        feedbackTitle.className = "font-extrabold text-base text-emerald-400";
+        feedbackTitle.textContent = `✅ Correct! +${earned} pts`;
+      } else {
+        triviaStreak = 0;
+        playWrongSound();
+        feedbackBox.className = "rounded-2xl p-4 border border-red-500/40 bg-red-950/30 text-sm space-y-2";
+        feedbackTitle.className = "font-extrabold text-base text-red-400";
+        feedbackTitle.textContent = `❌ Not quite! Correct answer: ${q.options[q.answer]}`;
+      }
+
+      feedbackFact.textContent = q.fact;
+      feedbackBox.classList.remove("hidden");
+
+      document.getElementById("trivia-score").textContent = triviaScore.toLocaleString();
+      document.getElementById("streak-badge").textContent = `🔥 Streak: ${triviaStreak}`;
+      updateBestScore(triviaScore);
+    }
+
+    function handleTimeout() {
+      if (questionLocked) return;
+      questionLocked = true;
+      triviaStreak = 0;
+
+      const q = triviaQuestions[currentQIndex];
+      const optionButtons = document.getElementById("q-options").children;
+      for (let i = 0; i < optionButtons.length; i++) {
+        optionButtons[i].disabled = true;
+        if (i === q.answer) {
+          optionButtons[i].className =
+            "w-full text-left p-3.5 sm:p-4 rounded-xl bg-emerald-500/20 border-2 border-emerald-500 text-white font-bold text-sm sm:text-base flex items-center gap-3";
+        } else {
+          optionButtons[i].classList.add("opacity-50");
+        }
+      }
+
+      const feedbackBox = document.getElementById("q-feedback");
+      feedbackBox.className = "rounded-2xl p-4 border border-amber-500/40 bg-amber-950/30 text-sm space-y-2";
+      document.getElementById("q-feedback-title").className = "font-extrabold text-base text-amber-400";
+      document.getElementById("q-feedback-title").textContent = `⏰ Time's up! Answer: ${q.options[q.answer]}`;
+      document.getElementById("q-feedback-fact").textContent = q.fact;
+      feedbackBox.classList.remove("hidden");
+      document.getElementById("streak-badge").textContent = `🔥 Streak: 0`;
+    }
+
+    function nextQuestion() {
+      currentQIndex++;
+      if (currentQIndex < triviaQuestions.length) {
+        loadQuestion();
+      } else {
+        showTriviaSummary();
+      }
+    }
+
+    function showTriviaSummary() {
+      document.getElementById("trivia-play-area").classList.add("hidden");
+      document.getElementById("trivia-summary").classList.remove("hidden");
+
+      document.getElementById("final-trivia-score").textContent = `${triviaScore.toLocaleString()} pts`;
+      document.getElementById("final-trivia-correct").textContent = `${triviaCorrectCount}/${triviaQuestions.length}`;
+      document.getElementById("final-trivia-streak").textContent = bestTriviaStreak;
+
+      let rank = "Casual Explorer 🇰🇪";
+      if (triviaCorrectCount >= 14) rank = "Grandmaster Mzalendo 🏆";
+      else if (triviaCorrectCount >= 10) rank = "Nairobi Sharp Shooter 🔥";
+      else if (triviaCorrectCount >= 6) rank = "Rising Kenyan Pro ⭐";
+      document.getElementById("summary-rank-text").textContent = rank;
+
+      updateBestScore(triviaScore);
+    }
+
+    /* -----------------------------------------------------------------------
+       5. MATATU DODGE ARCADE GAME (LIGHTWEIGHT HTML5 CANVAS)
+    ----------------------------------------------------------------------- */
+    const canvas = document.getElementById("matatu-canvas");
+    const ctx = canvas.getContext("2d");
+    const wrapper = document.getElementById("arcade-canvas-wrapper");
+
+    let arcadeRunning = false;
+    let arcadeAnimId = null;
+    let playerLane = 1; // 0 = Left, 1 = Center, 2 = Right
+    let arcadeScore = 0;
+    let roadSpeed = 4.5;
+    let roadOffset = 0;
+    let entities = []; // { lane, y, type: 'hazard' | 'coin' }
+    let spawnTimer = 0;
+
+    function resizeArcadeCanvas() {
+      const rect = wrapper.getBoundingClientRect();
+      canvas.width = rect.width || 360;
+      canvas.height = rect.height || 440;
+    }
+
+    window.addEventListener("resize", () => {
+      if (!document.getElementById("section-arcade").classList.contains("hidden")) {
+        resizeArcadeCanvas();
+        if (!arcadeRunning) drawIdleRoad();
+      }
+    });
+
+    function moveLane(dir) {
+      if (!arcadeRunning) return;
+      const nextLane = Math.max(0, Math.min(2, playerLane + dir));
+      if (nextLane !== playerLane) {
+        playerLane = nextLane;
+        playMoveSound(dir);
+      }
+    }
+
+    // Touch buttons
+    document.getElementById("btn-lane-left").addEventListener("click", () => moveLane(-1));
+    document.getElementById("btn-lane-right").addEventListener("click", () => moveLane(1));
+
+    // Swipe gestures on canvas
+    let touchStartX = 0;
+    wrapper.addEventListener("touchstart", (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    wrapper.addEventListener("touchend", (e) => {
+      const dx = e.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(dx) > 25) {
+        moveLane(dx < 0 ? -1 : 1);
+      }
+    }, { passive: true });
+
+    // Keyboard controls
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") moveLane(-1);
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") moveLane(1);
+    });
+
+    function startArcadeGame() {
+      resizeArcadeCanvas();
+      playerLane = 1;
+      arcadeScore = 0;
+      roadSpeed = 4.8;
+      roadOffset = 0;
+      entities = [];
+      spawnTimer = 0;
+      arcadeRunning = true;
+
+      document.getElementById("arcade-start-overlay").classList.add("hidden");
+      document.getElementById("arcade-gameover-overlay").classList.add("hidden");
+
+      cancelAnimationFrame(arcadeAnimId);
+      arcadeLoop();
+    }
+
+    function stopArcadeLoop() {
+      arcadeRunning = false;
+      cancelAnimationFrame(arcadeAnimId);
+    }
+
+    function drawRoadBackground() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const laneW = w / 3;
+
+      // Asphalt
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(0, 0, w, h);
+
+      // Shoulder stripes (Kenyan red/green/white accents)
+      ctx.fillStyle = "#10b981";
+      ctx.fillRect(0, 0, 6, h);
+      ctx.fillStyle = "#ef4444";
+      ctx.fillRect(w - 6, 0, 6, h);
+
+      // Dashed lane dividers
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 3;
+      ctx.setLineDash([24, 20]);
+      ctx.lineDashOffset = -roadOffset;
+
+      for (let i = 1; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(laneW * i, 0);
+        ctx.lineTo(laneW * i, h);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+
+    function drawIdleRoad() {
+      drawRoadBackground();
+      drawMatatu(1);
+    }
+
+    function drawMatatu(lane) {
+      const w = canvas.width;
+      const h = canvas.height;
+      const laneW = w / 3;
+      const cx = laneW * lane + laneW / 2;
+      const carW = Math.min(48, laneW * 0.56);
+      const carH = 78;
+      const y = h - carH - 22;
+
+      // Shadow
+      ctx.fillStyle = "rgba(0,0,0,0.4)";
+      ctx.beginPath();
+      ctx.roundRect(cx - carW / 2 + 4, y + 6, carW, carH, 10);
+      ctx.fill();
+
+      // Colorful Nganya body
+      ctx.fillStyle = "#f59e0b";
+      ctx.beginPath();
+      ctx.roundRect(cx - carW / 2, y, carW, carH, 10);
+      ctx.fill();
+
+      // Roof graffiti stripe
+      ctx.fillStyle = "#10b981";
+      ctx.fillRect(cx - carW / 2 + 6, y + 18, carW - 12, 34);
+
+      // Front windshield
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.roundRect(cx - carW / 2 + 5, y + 7, carW - 10, 12, 4);
+      ctx.fill();
+
+      // Headlights
+      ctx.fillStyle = "#fef08a";
+      ctx.fillRect(cx - carW / 2 + 5, y + 1, 8, 4);
+      ctx.fillRect(cx + carW / 2 - 13, y + 1, 8, 4);
+    }
+
+    function arcadeLoop() {
+      if (!arcadeRunning) return;
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const laneW = w / 3;
+
+      roadOffset = (roadOffset + roadSpeed) % 44;
+      roadSpeed = Math.min(11.5, roadSpeed + 0.0018);
+
+      drawRoadBackground();
+
+      // Spawn obstacles and coins
+      spawnTimer++;
+      const spawnInterval = Math.max(28, Math.floor(62 - roadSpeed * 2.8));
+      if (spawnTimer >= spawnInterval) {
+        spawnTimer = 0;
+        const randomLane = Math.floor(Math.random() * 3);
+        const isCoin = Math.random() < 0.35;
+        entities.push({
+          lane: randomLane,
+          y: -40,
+          type: isCoin ? "coin" : "hazard"
+        });
+      }
+
+      const playerTop = h - 100;
+      const playerBottom = h - 22;
+
+      // Update & draw entities
+      for (let i = entities.length - 1; i >= 0; i--) {
+        const ent = entities[i];
+        ent.y += roadSpeed;
+
+        const cx = laneW * ent.lane + laneW / 2;
+
+        if (ent.type === "coin") {
+          // Golden Coin
+          ctx.fillStyle = "#fbbf24";
+          ctx.beginPath();
+          ctx.arc(cx, ent.y, 15, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#b45309";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.fillStyle = "#78350f";
+          ctx.font = "bold 12px Inter, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("★", cx, ent.y + 1);
+        } else {
+          // Red/White Roadblock Barrier
+          const bw = Math.min(54, laneW * 0.62);
+          ctx.fillStyle = "#dc2626";
+          ctx.beginPath();
+          ctx.roundRect(cx - bw / 2, ent.y - 14, bw, 28, 6);
+          ctx.fill();
+
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(cx - bw / 2 + 6, ent.y - 4, bw - 12, 8);
+        }
+
+        // Collision Detection
+        if (ent.lane === playerLane && ent.y + 14 > playerTop && ent.y - 14 < playerBottom) {
+          if (ent.type === "coin") {
+            arcadeScore += 50;
+            playCoinSound();
+            entities.splice(i, 1);
+            continue;
+          } else {
+            endArcadeGame();
+            return;
+          }
+        }
+
+        // Passed safely
+        if (ent.y > h + 40) {
+          if (ent.type === "hazard") arcadeScore += 10;
+          entities.splice(i, 1);
+        }
+      }
+
+      drawMatatu(playerLane);
+
+      // HUD Score Pill
+      ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+      ctx.beginPath();
+      ctx.roundRect(12, 12, 118, 32, 10);
+      ctx.fill();
+      ctx.fillStyle = "#34d399";
+      ctx.font = "800 14px Inter, sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`Score: ${arcadeScore}`, 22, 28);
+
+      arcadeAnimId = requestAnimationFrame(arcadeLoop);
+    }
+
+    function endArcadeGame() {
+      arcadeRunning = false;
+      playCrashSound();
+      cancelAnimationFrame(arcadeAnimId);
+
+      const prevArcadeBest = parseInt(localStorage.getItem(STORAGE_KEY_ARCADE) || "0", 10);
+      if (arcadeScore > prevArcadeBest) {
+        localStorage.setItem(STORAGE_KEY_ARCADE, String(arcadeScore));
+      }
+      document.getElementById("arcade-high-score").textContent = `${Math.max(arcadeScore, prevArcadeBest).toLocaleString()} pts`;
+      document.getElementById("arcade-final-score").textContent = `${arcadeScore.toLocaleString()} pts`;
+      document.getElementById("arcade-gameover-overlay").classList.remove("hidden");
+
+      updateBestScore(arcadeScore);
+    }
+
+    /* -----------------------------------------------------------------------
+       6. LEADERBOARD & VIRAL WHATSAPP SHARING
+    ----------------------------------------------------------------------- */
+    function renderLeaderboard() {
+      const userBest = getBestOverall();
+      const basePlayers = [
+        { name: "Brian K. (Nairobi)", score: 2450 },
+        { name: "Faith W. (Nakuru)", score: 2180 },
+        { name: "Kevin O. (Kisumu)", score: 1890 },
+        { name: "Mercy C. (Eldoret)", score: 1540 },
+        { name: "You (Your Best)", score: userBest, isUser: true }
+      ];
+
+      basePlayers.sort((a, b) => b.score - a.score);
+
+      const container = document.getElementById("leaderboard-list");
+      container.innerHTML = basePlayers
+        .map((p, idx) => {
+          const badge = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`;
+          const highlight = p.isUser ? "bg-emerald-500/10 text-emerald-300 font-bold rounded-xl px-2" : "text-slate-300 px-2";
+          return `
+            <div class="py-2.5 flex items-center justify-between ${highlight}">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 text-center font-extrabold">${badge}</span>
+                <span>${p.name}</span>
+              </div>
+              <span class="font-extrabold text-amber-400">${p.score.toLocaleString()} pts</span>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function shareOnWhatsApp(source) {
+      const pageUrl = window.location.href;
+      let text = "";
+      if (source === "trivia") {
+        text = `🇰🇪 I just scored ${triviaScore.toLocaleString()} pts (${triviaCorrectCount}/${triviaQuestions.length} correct) on ChezaSmart KE Trivia! Think you know Kenya better than me? Play free here: ${pageUrl}`;
+      } else {
+        text = `🚐💨 I scored ${arcadeScore.toLocaleString()} pts dodging potholes in Matatu Highway Dodge on ChezaSmart KE! Can you beat my score? Play free here: ${pageUrl}`;
+      }
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, "_blank", "noopener,noreferrer");
+    }
+
+    /* -----------------------------------------------------------------------
+       7. ADMIN MODAL CONTROLS & INITIAL BOOT
+    ----------------------------------------------------------------------- */
+    function openSettings() {
+      const modal = document.getElementById("settings-modal");
+      modal.classList.remove("hidden");
+      updateSettingsSoundLabel();
+    }
+    function closeSettings() { document.getElementById("settings-modal").classList.add("hidden"); }
+    function updateSettingsSoundLabel() {
+      const label = document.getElementById("settings-sound-label");
+      if (label) label.textContent = soundEnabled ? "On" : "Off";
+    }
+    function resetLocalGameScores() {
+      if (!confirm("Reset your saved best scores on this device?")) return;
+      localStorage.removeItem(STORAGE_KEY_BEST);
+      localStorage.removeItem(STORAGE_KEY_ARCADE);
+      document.getElementById("header-best-score").textContent = "0 pts";
+      document.getElementById("arcade-high-score").textContent = "0 pts";
+      renderLeaderboard();
+      closeSettings();
+    }
+    function openWithdrawModal() {
+      const modal = document.getElementById("withdraw-modal");
+      modal.classList.remove("hidden");
+      document.getElementById("withdraw-amount").value = "";
+      document.getElementById("paypal-email").value = "";
+      document.getElementById("withdraw-message").textContent = "";
+    }
+    function closeWithdrawModal() { document.getElementById("withdraw-modal").classList.add("hidden"); }
+    function submitWithdrawRequest() {
+      const amount = Number(document.getElementById("withdraw-amount").value);
+      const message = document.getElementById("withdraw-message");
+      const paypalEmail = document.getElementById("paypal-email").value.trim();
+      if (!Number.isFinite(amount) || amount < 10 || amount > 50) {
+        message.textContent = "Enter an amount between $10 and $50.";
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmail)) {
+        message.textContent = "Enter a valid PayPal email address.";
+        return;
+      }
+      const pointsRequired = amount * 10000;
+      message.textContent = `Request details: $${amount.toFixed(2)} to ${paypalEmail} (${pointsRequired.toLocaleString()} points). This is not sent—secure withdrawal processing is not connected.`;
+    }
+
+    function togglePointsConverter() {
+      document.getElementById("points-converter-popover").classList.toggle("hidden");
+    }
+    function convertPointsToUsd() {
+      const field = document.getElementById("points-convert-input");
+      const result = document.getElementById("points-convert-result");
+      const points = Math.max(0, Number(field.value) || 0);
+      result.textContent = `Value: $${(points / 10000).toFixed(2)} USD`;
+    }
+
+    window.onload = function () {
+      const bestOverall = getBestOverall();
+      const bestArcade = parseInt(localStorage.getItem(STORAGE_KEY_ARCADE) || "0", 10);
+      document.getElementById("header-best-score").textContent = `${bestOverall.toLocaleString()} pts`;
+      document.getElementById("arcade-high-score").textContent = `${bestArcade.toLocaleString()} pts`;
+
+      updateSoundUI();
+      renderLeaderboard();
+      restartTrivia();
+    };
+  </script>
+</body>
+</html>
+```
